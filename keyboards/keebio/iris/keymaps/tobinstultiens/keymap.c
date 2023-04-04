@@ -6,11 +6,15 @@
 #define _RAISE 2
 #define _ADJUST 3
 
+// This is for alt tab
+bool is_alt_tab_active = false;
+
 enum custom_keycodes {
   QWERTY = SAFE_RANGE,
   LOWER,
   RAISE,
   ADJUST,
+  ALT_TAB,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -31,15 +35,15 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_LOWER] = LAYOUT(
   //┌────────┬────────┬────────┬────────┬────────┬────────┐                          ┌────────┬────────┬────────┬────────┬────────┬────────┐
-     KC_TILD, KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC,                            KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSPC,
+     KC_TILD, KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC,                            KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_EQL,
   //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
-     A(KC_TAB), _______, _______, KC_LCBR, KC_RCBR, KC_PIPE,                            _______, _______, _______, _______, _______, KC_PSCR,
+     ALT_TAB, _______, _______, KC_LCBR, KC_RCBR, KC_EQL,                             _______, _______, _______, _______, _______, KC_PSCR,
   //├────────┼────────┼────────┼────────┼────────┼────────┤                          ├────────┼────────┼────────┼────────┼────────┼────────┤
      KC_DEL,  _______, _______, KC_LPRN, KC_RPRN, KC_GRV,                             KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, _______, _______,
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐        ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-     BL_STEP, _______, _______, KC_LBRC, KC_RBRC, KC_TILD, _______,          _______, _______, _______, _______, _______, _______, _______,
+     BL_STEP, _______, _______, KC_LBRC, KC_RBRC, KC_TILD, _______,          _______, _______, _______, KC_LT,   KC_GT,   _______, _______,
   //└────────┴────────┴────────┴───┬────┴───┬────┴───┬────┴───┬────┘        └───┬────┴───┬────┴───┬────┴───┬────┴────────┴────────┴────────┘
-                                    _______, _______, KC_DEL,                    C(KC_BSPC),_______, _______
+                                    _______, _______, _______,                   KC_DEL,  _______, _______
                                 // └────────┴────────┴────────┘                 └────────┴────────┴────────┘
   ),
 
@@ -75,8 +79,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 void keyboard_post_init_user(void) {
   rgblight_enable_noeeprom(); // Enables RGB, without saving settings
   rgblight_sethsv_noeeprom(HSV_PURPLE);
-//rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
 }
+
+// # Region This is the functionality for alt tabbing
+layer_state_t layer_state_set_user(layer_state_t state) {
+    if (is_alt_tab_active) {
+        unregister_code(KC_LALT);
+        is_alt_tab_active = false;
+    }
+    return state;
+}
+// # END
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
@@ -114,6 +127,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
       break;
+		case ALT_TAB: // super alt tab macro
+    	if (record->event.pressed) {
+    		if (!is_alt_tab_active) {
+      		is_alt_tab_active = true;
+      		register_code(KC_LALT);
+      	}
+      	register_code(KC_TAB);
+      } else {
+      	unregister_code(KC_TAB);
+      }
+      break;
+    return false;
   }
   return true;
 }
