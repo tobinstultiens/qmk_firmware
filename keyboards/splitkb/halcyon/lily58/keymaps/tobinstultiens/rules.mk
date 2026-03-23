@@ -2,4 +2,4 @@
 USER_NAME := halcyon_modules
 
 # Select the attached Halcyon module for this keymap.
-HLC_TFT_DISPLAY = 1
+HLC_ENCODER= 1
